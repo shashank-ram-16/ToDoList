@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.3s ease;
+        }
+
+        #todoApp {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 300px;
+            transition: box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+
+        #taskList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .task input {
+            margin-right: 8px;
+        }
+
+        .task label {
+            text-decoration: none; /* Initial value */
+        }
+
+        .task.completed label {
+            text-decoration: line-through;
+        }
+
+        .task button {
+            background-color: #ff5555;
+            color: #fff;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        /* Light theme */
+        body.light-theme {
+            background-color: #f4f4f4;
+        }
+
+        body.light-theme #todoApp {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark theme */
+        body.dark-theme {
+            background-color: #333;
+        }
+
+        body.dark-theme #todoApp {
+            background-color: #444;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-theme .task label {
+            color: #fff;
+        }
+
+        #taskInput {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        #taskInput:focus {
+            outline: none;
+            border-color: #6e91af;
+        }
+
+        #toggleThemeBtn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body class="light-theme">
+
+<div id="todoApp">
+    <h2>To-Do List</h2>
+    <input type="text" id="taskInput" placeholder="Add a new task">
+    <ul id="taskList"></ul>
+    <button id="toggleThemeBtn" onclick="toggleTheme()">☀️</button>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const taskInput = document.getElementById("taskInput");
+        const taskList = document.getElementById("taskList");
+
+        // Load tasks from local storage
+        const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+        // Render tasks
+        function renderTasks() {
+            taskList.innerHTML = "";
+            tasks.forEach(function (task, index) {
+                const listItem = document.createElement("li");
+                listItem.className = "task" + (task.completed ? " completed" : "");
+                listItem.setAttribute("data-index", index); // Set data-index attribute
+                listItem.innerHTML = `
+                    <input type="checkbox" ${task.completed ? 'checked' : ''} id="task-${index}">
+                    <label for="task-${index}">${task.text}</label>
+                    <button class="edit-btn">Edit</button>
+                    <button class="delete-btn">Delete</button>
+                `;
+                taskList.appendChild(listItem);
+            });
+
+            // Save tasks to local storage
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        // Add new task
+        function addTask() {
+            const text = taskInput.value.trim();
+            if (text !== "") {
+                tasks.push({ text, completed: false });
+                taskInput.value = "";
+                renderTasks();
+            }
+        }
+
+        // Edit task
+        function editTask(index) {
+            const newText = prompt("Edit task:", tasks[index].text);
+            if (newText !== null) {
+                tasks[index].text = newText.trim();
+                renderTasks();
+            }
+        }
+
+        // Toggle completion of task
+        function toggleCompletion(index) {
+            tasks[index].completed = !tasks[index].completed;
+            renderTasks();
+        }
+
+        // Delete task
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+        }
+
+        // Event listener for adding a new task
+        taskInput.addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+                addTask();
+            }
+        });
+
+        // Event delegation for edit, delete, and checkbox buttons
+        taskList.addEventListener("click", function (event) {
+            const target = event.target;
+            if (target.classList.contains("edit-btn")) {
+                const index = target.parentElement.getAttribute("data-index");
+                editTask(index);
+            } else if (target.classList.contains("delete-btn")) {
+                const index = target.parentElement.getAttribute("data-index");
+                deleteTask(index);
+            } else if (target.type === "checkbox") {
+                const index = target.parentElement.getAttribute("data-index");
+                toggleCompletion(index);
+            }
+        });
+
+        // Render initial tasks
+        renderTasks();
+    });
+
+    function toggleTheme() {
+        document.body.classList.toggle("dark-theme");
+        document.body.classList.toggle("light-theme");
+        updateToggleThemeBtn();
+    }
+
+    function updateToggleThemeBtn() {
+        const toggleThemeBtn = document.getElementById("toggleThemeBtn");
+        const isDarkTheme = document.body.classList.contains("dark-theme");
+        toggleThemeBtn.textContent = isDarkTheme ? "☀️" : "🌙";
+    }
+</script>
+
+</body>
+</html>
